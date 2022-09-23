@@ -12,12 +12,19 @@ nodes:
     env:
     - ON_ENV_INSTALL: ""
     displayName: DB Server
-    count: 2
+    count: 1
     cluster: false
+
+  - nodeType: proxysql
+    fixedCloudlets: 3
+    flexibleCloudlets: 8
+    count: 1
+    nodeGroup: proxy
   
   - nodeType: storage
     nodeGroup: storage
     displayName: Storage
+    cluster: true
     fixedCloudlets: 3
     flexibleCloudlets: 8
   
@@ -33,7 +40,7 @@ nodes:
   - nodeType: nginxphp-dockerized
     nodeGroup: cp
     tag: 1.16.0-php-7.3.8
-    count: 3
+    count: 2
     fixedCloudlets: 3
     flexibleCloudlets: 8
     scalingMode: STATEFUL
