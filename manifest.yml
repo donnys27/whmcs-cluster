@@ -1,0 +1,58 @@
+type: "install"
+name: "WHMCS Cluster"
+description:
+  text: "WHMCS App"
+
+nodes:
+  - nodeType: mariadb-dockerized
+    nodeGroup: sqldb
+    tag: "10.3.32"
+    fixedCloudlets: 3
+    flexibleCloudlets: 8
+    env:
+    - ON_ENV_INSTALL: ""
+    displayName: DB Server
+    count: 2
+    cluster: false
+  
+  - nodeType: storage
+    nodeGroup: storage
+    displayName: Storage
+    fixedCloudlets: 3
+    flexibleCloudlets: 8
+  
+  - nodeType: nginx-dockerized
+    nodeGroup: bl
+    fixedCloudlets: 3
+    flexibleCloudlets: 8
+    scalingMode: STATEFUL
+    displayName: Load Balancer
+    count: 1
+    tag: 1.16.0
+
+  - nodeType: nginxphp-dockerized
+    nodeGroup: cp
+    tag: 1.16.0-php-7.3.8
+    count: 3
+    fixedCloudlets: 3
+    flexibleCloudlets: 8
+    scalingMode: STATEFUL
+    displayName: App Server
+    env:
+      SERVER_WEBROOT: "/var/www/webroot/ROOT"
+    volumes:
+    - /var/www/webroot/ROOT
+    - /var/www/webroot/.cache
+    - /etc/nginx
+    volumeMounts:
+      /var/www/webroot/ROOT:
+        sourceNodeGroup: storage
+        readOnly: false
+        sourcePath: /data/ROOT
+        protocol: NFS
+      /etc/nginx:
+        sourceNodeGroup: storage
+        readOnly: false
+        sourcePath: /data/APPCONFIGS
+  
+
