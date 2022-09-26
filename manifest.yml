@@ -4,9 +4,8 @@ description:
   text: "WHMCS App"
 
 nodes:
-  - nodeType: mariadb-dockerized
+  - nodeType: mysql
     nodeGroup: sqldb
-    tag: "10.3.32"
     fixedCloudlets: 3
     flexibleCloudlets: 8
     env:
