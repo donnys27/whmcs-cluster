@@ -11,6 +11,8 @@ nodes:
     flexibleCloudlets: 8
     env:
     - ON_ENV_INSTALL: ""
+    - DB_USER: ${globals.db_user}
+    - DB_PASS: ${globals.db_pass}
     displayName: DB Server
     count: 1
     cluster: false
@@ -62,4 +64,70 @@ nodes:
         readOnly: false
         sourcePath: /data/APPCONFIGS
   
+globals:
+  db_user: jelastic-${fn.random}
+  db_pass: ${fn-password(10)}
+  db_host: sqldb
+  success: success
+  email: default
 
+onAfterScaleOut[nodeGroup:bl]:
+  - forEach(event.response.nodes):
+      - setupBL:
+          nodeId: ${@i.id}
+  - forEach(nodes.bl):
+      sudo jem service restart
+
+onAfterScaleOut[nodeGroup:cp]:
+  - forEach(event.response.nodes):
+    - log: Mount Storage
+    - api:
+      - method: jelastic.environment.file.AddMountPointById
+        params:
+          nodeId: ${@i.id}
+          sourceNodeId: ${nodes.storage.master.id}
+          sourcePath: /data
+          path: /var/www/webroot/ROOT
+          sourceAddressType: NODE_GROUP
+    - setupCP:
+        nodeId: ${@i.id}
+        nodeIP: ${@i.address}
+
+onInstall:
+  - forEach(i:nodes.cp):
+      setupCP:
+        nodeId: ${@i.id}
+        nodeIP: ${@i.address}
+
+actions:
+  glusterfsMount:
+  - cmd[${this}]: |-
+      yum install glusterfs-fuse -y &>> /var/log/run.log;
+      sed -i 's/[^[:space:]][^[:space:]]*/-fstype=glusterfs/2' /etc/autofs.jelastic &>> /var/log/run.log;
+      service autofs restart;
+    user: root
+
+  glusterAllowClient:
+  - forEach(i:nodes.storage):
+      cmd[${@i.id}]: gluster volume set data auth.allow "*"
+
+  setupCP:
+    - cmd[${this.nodeId}]: |-
+        sed -i "s/zend_extension.*/; zend_extension=opcache.so/" /usr/local/lsws/lsphp/etc/php.d/10-opcache.ini;
+        sed -i "s/opcache.enable.*/; opcache.enable=0/" /usr/local/lsws/lsphp/etc/php.d/10-opcache.ini;
+        if test -f /usr/local/sbin/optimization.sh; then bash /usr/local/sbin/optimization.sh &>> /var/log/run.log; fi
+    - glusterAllowClient: ${this.nodeIP}
+    - glusterfsMount: ${this.nodeId}
+
+  mountStorage:
+    - log: Mount Storage
+    - api:
+      - method: jelastic.environment.file.AddMountPointByGroup
+        params:
+          nodeGroup: cp
+          sourceNodeId: ${nodes.storage.master.id}
+          sourcePath: /data
+          path: /var/www/webroot/ROOT
+          sourceAddressType: NODE_GROUP
+
+  
