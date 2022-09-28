@@ -4,9 +4,8 @@ description:
   text: "WHMCS App"
 
 nodes:
-  - nodeType: mysql
+  - nodeType: mysql5-6
     nodeGroup: sqldb
-    tag: 5.6
     fixedCloudlets: 3
     flexibleCloudlets: 8
     env:
