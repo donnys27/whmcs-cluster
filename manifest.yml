@@ -38,13 +38,19 @@ nodes:
     count: 1
     tag: 1.16.0
 
-  - nodeType: nginxphp-dockerized
+  - nodeType: docker
     nodeGroup: cp
-    tag: 1.16.0-php-7.3.8
+    links:
+    - cache:MEMCACHED
+    - proxy:PROXYSQL
     count: 2
     fixedCloudlets: 3
     flexibleCloudlets: 8
     scalingMode: STATEFUL
+    registry:
+      user: registry
+      password: 4y6iq?2TmV+Zzmy|
+      url: registry.dewaweb.com
     displayName: App Server
     env:
       SERVER_WEBROOT: "/var/www/webroot/ROOT"
