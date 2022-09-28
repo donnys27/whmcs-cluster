@@ -48,6 +48,7 @@ nodes:
     fixedCloudlets: 3
     flexibleCloudlets: 8
     scalingMode: STATEFUL
+    image: jelastic/nginxphp_1.16.0-php-7.0.33:1
     registry:
       user: registry
       password: 4y6iq?2TmV+Zzmy|
