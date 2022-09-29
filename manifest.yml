@@ -5,7 +5,7 @@ description:
 
 nodes:
   - nodeType: mariadb-dockerized
-    tag: 10.2.34
+    tag: 10.3.34
     nodeGroup: sqldb
     fixedCloudlets: 3
     flexibleCloudlets: 8
